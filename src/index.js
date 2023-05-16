@@ -7,7 +7,7 @@ const searchBox = document.getElementById('search-box');
 const countryList = document.querySelector('.country-list');
 const countryInfo = document.querySelector('.country-info');
 
-const devounce = (func, delay) => {
+const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
     if (timeoutId) {
@@ -22,7 +22,7 @@ const devounce = (func, delay) => {
 const displayCountryList = countries => {
   countryList.innerHTML = '';
   countries.forEach(country => {
-    const { flag, name } = country;
+    const { flags, name } = country;
     const flagUrl = flags.svg;
 
     const countryItem = document.createElement('li');
@@ -52,8 +52,15 @@ const displayCountryInfo = country => {
   `;
 };
 
+const displayTooManyMatches = () => {
+  countryList.innerHTML = '';
+  notiflix.Notify.info(
+    'Too many matches found. Please enter a more specific name.'
+  );
+};
+
 const displayError = message => {
-  Notiflix.Notify.failure(`Oops, ${message}`);
+  notiflix.Notify.failure(`Oops, ${message}`);
 };
 
 const searchCountries = async name => {
@@ -84,9 +91,9 @@ const searchCountries = async name => {
   }
 };
 
-const debouncedSerch = debounce(searchCountries, 300);
+const debouncedSearch = debounce(searchCountries, 300);
 
 searchBox.addEventListener('input', event => {
   const searchTerm = event.target.value.trim();
-  debouncedSerch(seartchTerm);
+  debouncedSearch(searchTerm);
 });
