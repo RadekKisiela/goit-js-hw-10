@@ -18,3 +18,16 @@ body {
   max-width: 320px;
   margin-bottom: 16px;
 }
+
+.img-flags {
+  width: auto;
+  height: 20px;
+  margin-right: 10px;
+}
+.img-flag {
+  width: auto;
+  height: 100px;
+}
+.country-list {
+  list-style: none;
+}

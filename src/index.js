@@ -1,99 +1,91 @@
 import './css/styles.css';
-import { fetchCountries } from './fetchCountries.js';
-import debounce from 'lodash.debounce';
+import debounce from 'lodash/debounce';
 import Notiflix from 'notiflix';
+import { fetchCountries } from './fetchCountries.js';
 
-const searchBox = document.getElementById('search-box');
+const DEBOUNCE_DELAY = 300;
+
+const searchInput = document.querySelector('#search-box');
 const countryList = document.querySelector('.country-list');
 const countryInfo = document.querySelector('.country-info');
 
-const debounce = (func, delay) => {
-  let timeoutId;
-  return (...args) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      func.apply(null, args);
-    }, delay);
-  };
-};
-
-const displayCountryList = countries => {
+const createCountryList = countries => {
   countryList.innerHTML = '';
   countries.forEach(country => {
-    const { flags, name } = country;
-    const flagUrl = flags.svg;
-
     const countryItem = document.createElement('li');
     const flagImg = document.createElement('img');
-    flagImg.src = flagUrl;
-    flagImg.alt = `${name} flag`;
-
-    const countryName = document.createElement('span');
-    countryName.textContent = name.official;
-
+    flagImg.setAttribute('src', country.flag); // Ustawienie atrybutu src na adres URL flagi kraju
+    flagImg.setAttribute('alt', country.name);
+    flagImg.classList.add('img-flags'); // Dodanie klasy img-flag
     countryItem.appendChild(flagImg);
+    const countryName = document.createElement('span');
+    countryName.textContent = country.name;
     countryItem.appendChild(countryName);
+    countryItem.addEventListener('click', () => {
+      createCountryInfo(country);
+    });
     countryList.appendChild(countryItem);
   });
 };
 
-const displayCountryInfo = country => {
-  const { flags, name, capital, population, languages } = country;
-  const flagUrl = flags.svg;
-
-  countryInfo.innerHTML = `
-    <img src="${flagUrl}" alt="${name.official} flag">
-    <h2>${name.official}</h2>
-    <p><strong>Capital:</strong> ${capital.join(', ')}</p>
-    <p><strong>Population:</strong> ${population}</p>
-    <p><strong>Languages:</strong> ${languages.join(', ')}</p>
-  `;
-};
-
-const displayTooManyMatches = () => {
-  countryList.innerHTML = '';
-  notiflix.Notify.info(
-    'Too many matches found. Please enter a more specific name.'
+const createCountryInfo = country => {
+  countryInfo.innerHTML = '';
+  const countryFlag = document.createElement('img');
+  countryFlag.setAttribute('src', country.flag); // Dodaj atrybut src i przypisz wartość flagi kraju
+  countryFlag.setAttribute('alt', country.name);
+  countryFlag.classList.add('img-flag');
+  const countryName = document.createElement('h2');
+  countryName.textContent = country.name;
+  const countryCapital = document.createElement('p');
+  countryCapital.textContent = `Capital: ${country.capital}`;
+  const countryPopulation = document.createElement('p');
+  countryPopulation.textContent = `Population: ${country.population}`;
+  const countryLanguages = document.createElement('p');
+  countryLanguages.textContent = `Languages: ${country.languages}`;
+  countryInfo.append(
+    countryFlag,
+    countryName,
+    countryCapital,
+    countryPopulation,
+    countryLanguages
   );
 };
 
-const displayError = message => {
-  notiflix.Notify.failure(`Oops, ${message}`);
-};
+const debouncedSearchCountry = debounce(() => {
+  const searchValue = searchInput.value.trim();
 
-const searchCountries = async name => {
-  if (name.trim() === '') {
+  if (!searchValue) {
     countryList.innerHTML = '';
     countryInfo.innerHTML = '';
     return;
   }
 
-  try {
-    const countries = await fetchCountries(name);
+  fetchCountries(searchValue)
+    .then(countries => {
+      // console.log(countries);
+      if (countries.length > 10) {
+        Notiflix.Notify.info(
+          'Too many matches found. Please enter a more specific name.'
+        );
+        countryList.innerHTML = '';
+        countryInfo.innerHTML = '';
+      } else if (countries.length >= 2 && countries.length <= 10) {
+        countryList.innerHTML = '';
+        countryInfo.innerHTML = '';
+        createCountryList(countries);
+      } else if (countries.length === 1) {
+        countryList.innerHTML = '';
+        createCountryInfo(countries[0]);
+      } else {
+        Notiflix.Notify.failure('Oops, there is no country with that name.');
+        countryList.innerHTML = '';
+        countryInfo.innerHTML = '';
+      }
+    })
+    .catch(error => {
+      Notiflix.Notify.failure('Something went wrong.');
+      console.error(error);
+    });
+}, DEBOUNCE_DELAY);
 
-    if (countries.length > 10) {
-      displayTooManyMatches();
-    } else if (countries.length > 1) {
-      displayCountryList(countries);
-    } else if (countries.length === 1) {
-      displayCountryInfo(countries[0]);
-    } else {
-      countryList.innerHTML = '';
-      countryInfo.innerHTML = '';
-      displayError('there is no country with that name');
-    }
-  } catch (error) {
-    countryList.innerHTML = '';
-    countryInfo.innerHTML = '';
-    displayError(error.message);
-  }
-};
-
-const debouncedSearch = debounce(searchCountries, 300);
-
-searchBox.addEventListener('input', event => {
-  const searchTerm = event.target.value.trim();
-  debouncedSearch(searchTerm);
-});
+searchInput.addEventListener('input', debouncedSearchCountry);

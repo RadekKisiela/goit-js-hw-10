@@ -1,14 +1,33 @@
-export async function fetchCountries(name) {
-  const url = `https://restcountries.com/v3.1/name/${name}?fields=name.official,capital,population,flags.svg,languages`;
+const baseUrl = 'https://restcountries.com/v3.1/';
 
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(response.status);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-}
+export const fetchCountries = name => {
+  const fields = 'fields=name,flags,capital,population,languages';
+  const url = `${baseUrl}name/${encodeURIComponent(name)}?${fields}`;
+
+  return fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      const countries = Object.keys(data).map(key => {
+        const country = data[key];
+        const commonName = country.name.common || 'unknown';
+        return {
+          name: commonName !== 'undefined' ? commonName : 'unknown',
+          flag: country.flags?.svg || '',
+          capital: country.capital?.[0] || 'unknown',
+          population: country.population || 'unknown',
+          languages: Object.values(country.languages).join(', ') || 'unknown',
+        };
+      });
+      console.log(countries);
+      return countries;
+    })
+    .catch(error => {
+      console.error(error);
+      throw error;
+    });
+};
