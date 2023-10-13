@@ -2,20 +2,20 @@
   "name": "parcel-project-template",
   "version": "2.0.0",
   "description": "",
-  "homepage": "https://github.com/RafalBizek/goit-js-hw-10/",
+  "homepage": "https://github.com/RadekKisiela/goit-js-hw-10/",
   "scripts": {
     "start": "parcel src/*.html",
     "build": "parcel build src/*.html --public-url /goit-js-hw-10/"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RafalBizek/goit-js-hw-10/"
+    "url": "git+https://github.com/RadekKisiela/goit-js-hw-10/"
   },
   "keywords": [],
-  "author": "Rafał Biżek <rafal.bizek@gmail.com>",
+  "author": "Radek Kisiela",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/RafalBizek/goit-js-hw-10//issues"
+    "url": "https://github.com/RadekKisiela/goit-js-hw-10//issues"
   },
   "dependencies": {
     "lodash": "^4.17.21",
